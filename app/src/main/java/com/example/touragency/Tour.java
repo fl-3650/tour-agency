@@ -1,5 +1,7 @@
 package com.example.touragency;
 
+import androidx.annotation.NonNull;
+
 public class Tour {
     // Fields
     private String name;
@@ -7,6 +9,9 @@ public class Tour {
     private double price;
     private int duration; // duration in days
     private String imageUrl;
+
+    // Empty constructor required by Firebase
+    public Tour() {}
 
     // Constructor
     public Tour(String name, String description, double price, int duration, String imageUrl) {
@@ -59,6 +64,7 @@ public class Tour {
     }
 
     // toString method for easy printing
+    @NonNull
     @Override
     public String toString() {
         return "Tour{" +
