@@ -1,6 +1,7 @@
 package com.example.touragency;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -20,15 +23,22 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     private Context context;
     private List<Tour> tourList;
     private OnAddToCartListener onAddToCartListener;
+    private OnRemoveFromCartListener onRemoveFromCartListener;
+    private static final String TAG = "TourAdapter";
 
     public interface OnAddToCartListener {
         void onAddToCart(Tour tour);
     }
 
-    public TourAdapter(Context context, List<Tour> tourList, OnAddToCartListener onAddToCartListener) {
+    public interface OnRemoveFromCartListener {
+        void onRemoveFromCart(Tour tour);
+    }
+
+    public TourAdapter(Context context, List<Tour> tourList, OnAddToCartListener onAddToCartListener, OnRemoveFromCartListener onRemoveFromCartListener) {
         this.context = context;
         this.tourList = tourList;
         this.onAddToCartListener = onAddToCartListener;
+        this.onRemoveFromCartListener = onRemoveFromCartListener;
     }
 
     @NonNull
@@ -50,6 +60,30 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             if (onAddToCartListener != null) {
                 onAddToCartListener.onAddToCart(tour);
             }
+            String tourId = tour.getId();
+            if (tourId != null && !tourId.isEmpty()) {
+                DatabaseReference tourRef = FirebaseDatabase.getInstance().getReference("tours").child(tourId).child("added");
+                tourRef.setValue(true)
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Tour added to cart successfully"))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to add tour to cart", e));
+            } else {
+                Log.e(TAG, "Tour ID is null or empty");
+            }
+        });
+
+        holder.removeFromCartButton.setOnClickListener(v -> {
+            if (onRemoveFromCartListener != null) {
+                onRemoveFromCartListener.onRemoveFromCart(tour);
+            }
+            String tourId = tour.getId();
+            if (tourId != null && !tourId.isEmpty()) {
+                DatabaseReference tourRef = FirebaseDatabase.getInstance().getReference("tours").child(tourId).child("added");
+                tourRef.setValue(false)
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Tour removed from cart successfully"))
+                        .addOnFailureListener(e -> Log.e(TAG, "Failed to remove tour from cart", e));
+            } else {
+                Log.e(TAG, "Tour ID is null or empty");
+            }
         });
     }
 
@@ -64,6 +98,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         TextView tourDescription;
         TextView tourPrice;
         Button addToCartButton;
+        Button removeFromCartButton;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -72,6 +107,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             tourDescription = itemView.findViewById(R.id.tour_description);
             tourPrice = itemView.findViewById(R.id.tour_price);
             addToCartButton = itemView.findViewById(R.id.add_to_cart_button);
+            removeFromCartButton = itemView.findViewById(R.id.remove_from_cart_button);
         }
     }
 }

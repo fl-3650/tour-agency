@@ -41,4 +41,11 @@
         android:layout_height="wrap_content"
         android:text="Add to Cart"
         android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/remove_from_cart_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remove from Cart" />
+
 </LinearLayout>

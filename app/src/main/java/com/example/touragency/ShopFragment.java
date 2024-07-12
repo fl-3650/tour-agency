@@ -1,6 +1,7 @@
 package com.example.touragency;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ public class ShopFragment extends Fragment {
     private RecyclerView recyclerView;
     private TourAdapter tourAdapter;
     private List<Tour> tourList;
+    private static final String TAG = "ShopFragment";
 
     @Nullable
     @Override
@@ -34,6 +36,8 @@ public class ShopFragment extends Fragment {
         tourList = new ArrayList<>();
         tourAdapter = new TourAdapter(getContext(), tourList, tour -> {
             // Handle add to cart action
+        }, tour -> {
+            // Handle remove from cart action (Not needed in ShopFragment, but required for the constructor)
         });
         recyclerView.setAdapter(tourAdapter);
         loadToursFromDatabase();
@@ -47,14 +51,19 @@ public class ShopFragment extends Fragment {
                 tourList.clear();
                 for (DataSnapshot tourSnapshot : snapshot.getChildren()) {
                     Tour tour = tourSnapshot.getValue(Tour.class);
-                    tourList.add(tour);
+                    if (tour != null) {
+                        tour.setId(tourSnapshot.getKey());
+                        tourList.add(tour);
+                    } else {
+                        Log.e(TAG, "Tour data is null");
+                    }
                 }
                 tourAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle database error
+                Log.e(TAG, "Database error: " + error.getMessage());
             }
         });
     }
