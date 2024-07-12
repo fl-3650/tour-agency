@@ -25,20 +25,20 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ShopFragment extends Fragment {
 
-    private RecyclerView recyclerView;
     private TourAdapter tourAdapter;
     private List<Tour> tourList;
     private Button addButton;
-    private static final String TAG = "ShopFragment";
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_shop, container, false);
-        recyclerView = view.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         addButton = view.findViewById(R.id.add_button);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -46,27 +46,25 @@ public class ShopFragment extends Fragment {
         tourAdapter = new TourAdapter(getContext(), tourList, tour -> {}, tour -> {});
         recyclerView.setAdapter(tourAdapter);
 
-        // Check if the user is an admin and show the button if true
         checkIfAdmin();
 
-        addButton.setOnClickListener(v -> {
-            // Handle the add button click
-            showAddTourDialog();
-        });
+        addButton.setOnClickListener(v -> showAddTourDialog());
 
         loadToursFromDatabase();
         return view;
     }
 
     private void checkIfAdmin() {
-        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        String userEmail = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser())
+                .getEmail();
         if (userEmail != null && MainActivity.getSus().contains(userEmail)) {
             addButton.setVisibility(View.VISIBLE);
         }
     }
 
     private void loadToursFromDatabase() {
-        FirebaseDatabase.getInstance().getReference("tours").addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference("tours")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 tourList.clear();
@@ -76,7 +74,8 @@ public class ShopFragment extends Fragment {
                         tour.setId(tourSnapshot.getKey());
                         tourList.add(tour);
                     } else {
-                        // Handle tour data null
+                        Toast.makeText(getContext(), "Error",
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
                 tourAdapter.notifyDataSetChanged();
@@ -90,11 +89,9 @@ public class ShopFragment extends Fragment {
     }
 
     private void showAddTourDialog() {
-        // Create an AlertDialog with input fields for tour details
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Add New Tour");
 
-        // Set up the input fields
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -120,9 +117,7 @@ public class ShopFragment extends Fragment {
 
         builder.setView(layout);
 
-        // Set up the buttons
         builder.setPositiveButton("Add", (dialog, which) -> {
-            // Handle adding the tour to the database
             String name = tourNameInput.getText().toString();
             String description = tourDescriptionInput.getText().toString();
             String price = tourPriceInput.getText().toString();
@@ -136,21 +131,21 @@ public class ShopFragment extends Fragment {
         builder.show();
     }
 
-    private void addTourToDatabase(String name, String description, String price, String duration, String imageUrl) {
+    private void addTourToDatabase(String name, String description, String price,
+                                   String duration, String imageUrl) {
         DatabaseReference toursRef = FirebaseDatabase.getInstance().getReference("tours");
         String tourId = toursRef.push().getKey();
         if (tourId != null) {
-            Tour newTour = new Tour(tourId, name, description, Double.parseDouble(price), Integer.parseInt(duration), imageUrl, false);
+            Tour newTour = new Tour(tourId, name, description, Double.parseDouble(price),
+                    Integer.parseInt(duration), imageUrl, false);
             toursRef.child(tourId).setValue(newTour)
                     .addOnSuccessListener(aVoid -> {
-                        // Successfully added tour
                         loadToursFromDatabase();
-                        Toast.makeText(getContext(), "Tour added successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Tour added successfully",
+                                Toast.LENGTH_SHORT).show();
                     })
-                    .addOnFailureListener(e -> {
-                        // Failed to add tour
-                        Toast.makeText(getContext(), "Failed to add tour", Toast.LENGTH_SHORT).show();
-                    });
+                    .addOnFailureListener(e -> Toast.makeText(getContext(),
+                            "Failed to add tour", Toast.LENGTH_SHORT).show());
         }
     }
 }

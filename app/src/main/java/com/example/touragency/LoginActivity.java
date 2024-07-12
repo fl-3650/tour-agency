@@ -49,26 +49,26 @@ public class LoginActivity extends AppCompatActivity {
             String password = String.valueOf(editTextPassword.getText());
 
             if (TextUtils.isEmpty(email)) {
-                Toast.makeText(this, "Email пуст", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Email empty", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (TextUtils.isEmpty(password)) {
-                Toast.makeText(this, "Пароль пуст", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Password empty", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Toast.makeText(this, "Вход выполнен успешно.",
+                            Toast.makeText(this, "Login successful.",
                                     Toast.LENGTH_SHORT).show();
 
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
 
                         } else {
-                            Toast.makeText(this, "Ошибка входа.",
+                            Toast.makeText(this, "Error.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     });

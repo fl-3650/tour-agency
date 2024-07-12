@@ -23,28 +23,28 @@ import java.util.List;
 
 public class CartFragment extends Fragment {
 
-    private RecyclerView recyclerView;
     private TourAdapter tourAdapter;
     private List<Tour> cartTourList;
     private static final String TAG = "CartFragment";
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_cart, container, false);
-        recyclerView = view.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         cartTourList = new ArrayList<>();
-        tourAdapter = new TourAdapter(getContext(), cartTourList, tour -> {
-            // Handle add to cart action if needed
-        }, tour -> {
-            // Handle remove from cart action
+        tourAdapter = new TourAdapter(getContext(), cartTourList, tour -> {}, tour -> {
             String tourId = tour.getId();
             if (tourId != null && !tourId.isEmpty()) {
-                DatabaseReference tourRef = FirebaseDatabase.getInstance().getReference("tours").child(tourId).child("added");
+                DatabaseReference tourRef = FirebaseDatabase.getInstance()
+                        .getReference("tours").child(tourId).child("added");
                 tourRef.setValue(false)
-                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Tour removed from cart successfully"))
-                        .addOnFailureListener(e -> Log.e(TAG, "Failed to remove tour from cart", e));
+                        .addOnSuccessListener(aVoid ->
+                                Log.d(TAG, "Tour removed from cart successfully"))
+                        .addOnFailureListener(e ->
+                                Log.e(TAG, "Failed to remove tour from cart", e));
             } else {
                 Log.e(TAG, "Tour ID is null or empty");
             }
@@ -56,7 +56,8 @@ public class CartFragment extends Fragment {
     }
 
     private void loadCartToursFromDatabase() {
-        FirebaseDatabase.getInstance().getReference("tours").addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference("tours")
+                .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 cartTourList.clear();
@@ -72,7 +73,6 @@ public class CartFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle database error
                 Log.e(TAG, "Database error: " + error.getMessage());
             }
         });

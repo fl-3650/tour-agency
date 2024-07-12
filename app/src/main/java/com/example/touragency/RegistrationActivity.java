@@ -49,22 +49,22 @@ public class RegistrationActivity extends AppCompatActivity {
             String password = String.valueOf(editTextPassword.getText());
 
             if (TextUtils.isEmpty(email)) {
-                Toast.makeText(this, "Email пуст", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Email empty", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (TextUtils.isEmpty(password)) {
-                Toast.makeText(this, "Пароль пуст", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Password empty", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-                    Toast.makeText(this, "Регистрация прошла успешно. Вы можете войти", Toast.LENGTH_SHORT)
+                    Toast.makeText(this, "Registration successful.", Toast.LENGTH_SHORT)
                             .show();
 
                 } else {
-                    Toast.makeText(this, "Ошибка регистрации.",
+                    Toast.makeText(this, "Error.",
                             Toast.LENGTH_SHORT).show();
 
                 }
