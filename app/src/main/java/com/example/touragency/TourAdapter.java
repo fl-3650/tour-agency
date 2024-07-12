@@ -1,6 +1,7 @@
 package com.example.touragency;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -20,15 +23,22 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
     private Context context;
     private List<Tour> tourList;
     private OnAddToCartListener onAddToCartListener;
+    private OnRemoveFromCartListener onRemoveFromCartListener;
+    private static final String TAG = "TourAdapter";
 
     public interface OnAddToCartListener {
         void onAddToCart(Tour tour);
     }
 
-    public TourAdapter(Context context, List<Tour> tourList, OnAddToCartListener onAddToCartListener) {
+    public interface OnRemoveFromCartListener {
+        void onRemoveFromCart(Tour tour);
+    }
+
+    public TourAdapter(Context context, List<Tour> tourList, OnAddToCartListener onAddToCartListener, OnRemoveFromCartListener onRemoveFromCartListener) {
         this.context = context;
         this.tourList = tourList;
         this.onAddToCartListener = onAddToCartListener;
+        this.onRemoveFromCartListener = onRemoveFromCartListener;
     }
 
     @NonNull
@@ -46,9 +56,40 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         holder.tourPrice.setText("$" + tour.getPrice());
         Picasso.get().load(tour.getImageUrl()).into(holder.tourImage);
 
-        holder.addToCartButton.setOnClickListener(v -> {
-            if (onAddToCartListener != null) {
-                onAddToCartListener.onAddToCart(tour);
+        // Set button text based on tour added state
+        if (tour.isAdded()) {
+            holder.cartButton.setText("Remove from Cart");
+        } else {
+            holder.cartButton.setText("Add to Cart");
+        }
+
+        holder.cartButton.setOnClickListener(v -> {
+            String tourId = tour.getId();
+            if (tourId != null && !tourId.isEmpty()) {
+                DatabaseReference tourRef = FirebaseDatabase.getInstance().getReference("tours").child(tourId).child("added");
+                if (tour.isAdded()) {
+                    // Remove from cart
+                    tourRef.setValue(false)
+                            .addOnSuccessListener(aVoid -> {
+                                tour.setAdded(false);
+                                notifyDataSetChanged();
+                                onRemoveFromCartListener.onRemoveFromCart(tour);
+                                Log.d(TAG, "Tour removed from cart successfully");
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to remove tour from cart", e));
+                } else {
+                    // Add to cart
+                    tourRef.setValue(true)
+                            .addOnSuccessListener(aVoid -> {
+                                tour.setAdded(true);
+                                notifyDataSetChanged();
+                                onAddToCartListener.onAddToCart(tour);
+                                Log.d(TAG, "Tour added to cart successfully");
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to add tour to cart", e));
+                }
+            } else {
+                Log.e(TAG, "Tour ID is null or empty");
             }
         });
     }
@@ -63,7 +104,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
         TextView tourName;
         TextView tourDescription;
         TextView tourPrice;
-        Button addToCartButton;
+        Button cartButton;
 
         public TourViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -71,7 +112,7 @@ public class TourAdapter extends RecyclerView.Adapter<TourAdapter.TourViewHolder
             tourName = itemView.findViewById(R.id.tour_name);
             tourDescription = itemView.findViewById(R.id.tour_description);
             tourPrice = itemView.findViewById(R.id.tour_price);
-            addToCartButton = itemView.findViewById(R.id.add_to_cart_button);
+            cartButton = itemView.findViewById(R.id.cart_button);
         }
     }
 }
