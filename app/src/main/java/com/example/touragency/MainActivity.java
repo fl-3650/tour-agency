@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
     @NonNull
     public static List<String> getSus() {
-        return Arrays.asList("admin@gmail.com", "superuser2@example.com");
+        return Arrays.asList("admin@gmail.com", "admin1@example.com");
     }
 
     @Override
@@ -49,10 +49,5 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 }
