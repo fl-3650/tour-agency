@@ -83,7 +83,7 @@ public class ShopFragment extends Fragment {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle database error
+
             }
         });
     }
